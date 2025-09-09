@@ -16,7 +16,7 @@ class Table:
             self.headers = []
 
         if isinstance(data, dict):
-            self.rows = data.values()
+            self.rows = list(data.values()) # todo: подумать нужны ли преобразования в списки
             self.headers = list(data.keys())
         if isinstance(data, list):
             self.rows = data
@@ -37,14 +37,14 @@ if __name__ == '__main__':
 
     # Вариант 2: данные — словарь
     table2 = Table(data={
-        "City name": ["Adelaide", "Brisbane"],
-        "Area": [1295, 5905],
-        "Population": [1158259, 1857594],
-        "Annual Rainfall": [600.5, 1146.4]
+        "City name2": ["Adelaide", "Brisbane"],
+        "Area2": [1295, 5905],
+        "Population2": [1158259, 1857594],
+        "Annual Rainfall2": [600.5, 1146.4]
     })  # headers не нужны — берутся из ключей
 
     # Вариант 3: одна строка — просто список
-    table3 = Table(data=["Alice", 30, "Engineer"], headers=["Name", "Age", "Job"])
+    table3 = Table(data=["Alice", 30, "Engineer"], headers=["Name3", "Age3", "Job3"])
 
     # Настройка стиля
     # table.set_style(borders=True, numbering=True, separator_char='-', cross_char='+')
