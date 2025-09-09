@@ -1,3 +1,5 @@
+# для замещения отсутсвующих элементов списков
+from itertools import zip_longest
 """
 Table — главный класс. Он:
 
@@ -6,9 +8,6 @@ Table — главный класс. Он:
 Знает, как себя отрисовать
 Поддерживает настройки стиля
 """
-
-# для замещения отсутсвующих элементов списков
-from itertools import zip_longest
 
 
 def has_nested_lists(lst):
@@ -22,7 +21,10 @@ class Table:
         self.rows = []
         self.headers = headers or []
 
-        if isinstance(data, dict):
+        if not data:
+            # Пустые данные (None, [], "", 0 и т.д.) игнорируются — создаётся пустая таблица
+            pass
+        elif isinstance(data, dict):
             self.headers = list(data.keys())
 
             values = list(data.values())
@@ -30,32 +32,29 @@ class Table:
             if values:
                 first, *rest = values  # распаковываем тут для гарантии запуска zip_longest - иначе не дает
                 self.rows = list(zip_longest(first, *rest, fillvalue=None))
-            else:
-                self.rows = []
 
-        if data and isinstance(data, list):
+        elif isinstance(data, list):
 
             if has_nested_lists(data):
                 self.rows = data
             else:
                 self.rows = [data]
 
-            # заголовки есть
-            if headers:
-                self.headers = headers
-            else:
+            # заголовков нет
+            if not headers:
                 if has_nested_lists(data):
                     # если вложенные списки есть - ищем самый длинный элемент из списка и по нему строим заголовки
                     len_list = max(len(x) for x in data)
                 else:
                     len_list = len(data)
+
                 self.headers = [f'column {x + 1}' for x in range(len_list)]
 
     def __str__(self):
         return " ".join(self.headers)
 
     def __repr__(self):
-        return f'{self.headers} , rows = {self.rows}'
+        return f"Table(headers={self.headers}, rows={self.rows})"
 
 
 if __name__ == '__main__':
@@ -98,5 +97,5 @@ if __name__ == '__main__':
 
     # test_1list_hed()
     # test_2dict_hed()
-    test_3list()
-    # test_4list()
+    # test_3list()
+    test_4list()
