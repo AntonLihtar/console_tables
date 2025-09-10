@@ -1,5 +1,6 @@
 # для замещения отсутсвующих элементов списков
 from itertools import zip_longest
+
 """
 Table — главный класс. Он:
 
@@ -20,6 +21,7 @@ class Table:
 
         self.rows = []
         self.headers = headers or []
+        self.column_widths = []
 
         if not data:
             # Пустые данные (None, [], "", 0 и т.д.) игнорируются — создаётся пустая таблица
@@ -50,17 +52,24 @@ class Table:
 
                 self.headers = [f'column {x + 1}' for x in range(len_list)]
 
+        # вычисляем самую длинную строку и
+        self.column_widths = [len(x) for x in self.headers]
+        for row in self.rows:
+            for i, el in enumerate(row):
+                if len(str(el)) > self.column_widths[i]:
+                    self.column_widths[i] = el
+
     def __str__(self):
         return " ".join(self.headers)
 
     def __repr__(self):
-        return f"Table(headers={self.headers}, rows={self.rows})"
+        return f"Table(headers={self.headers}, rows={self.rows}, column_widths={self.column_widths})"
 
 
 if __name__ == '__main__':
     # todo: table.set_style(borders=True, numbering=True, separator_char='-', cross_char='+')
 
-    def test_1list_hed():
+    def no_test_1list_hed():
         # Вариант 1: данные — список списков
         table1 = Table(data=[
             ["Adelaide", 1295, 1158259, 600.5],
@@ -69,7 +78,7 @@ if __name__ == '__main__':
         print('table1 ', repr(table1))  # или table.render()
 
 
-    def test_2dict_hed():
+    def no_test_2dict_hed():
         # Вариант 2: данные — словарь
         table2 = Table(data={
             "City name2": ["Adelaide", "Brisbane"],
@@ -80,13 +89,13 @@ if __name__ == '__main__':
         print('table2 ', repr(table2))  # или table.render()
 
 
-    def test_3list():
+    def no_test_3list():
         # Вариант 3: одна строка — просто список
         table3 = Table(data=["Alice", 30, "Engineer"])
         print('table3 ', repr(table3))
 
 
-    def test_4list():
+    def no_test_4list():
         # Вариант 4: список списков
         table4 = Table(data=[
             ["Adelaide", 1295, 1158259, 600.5],
@@ -95,7 +104,7 @@ if __name__ == '__main__':
         print('table4 ', repr(table4))  # или table.render()
 
 
-    # test_1list_hed()
-    # test_2dict_hed()
-    # test_3list()
-    test_4list()
+    no_test_1list_hed()
+    # no_test_2dict_hed()
+    # no_test_3list()
+    no_test_4list()
