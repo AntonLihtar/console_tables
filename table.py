@@ -11,9 +11,17 @@ Table — главный класс. Он:
 """
 
 
-def has_nested_lists(lst):
+def has_nested_lists(lst: list) -> bool:
     """вспомогательный метод — проверяет, есть ли вложенные списки."""
     return any(isinstance(item, list) for item in lst)
+
+
+def get_full_elements(elements: list[str | int], column_widths: list[int]) -> list[str]:
+    return [str(v).center(l) for v, l in zip(elements, column_widths)]
+
+
+def add_brackets_to_row(elements: list[str]) -> str:
+    return f'| {" | ".join(elements)} |'
 
 
 class Table:
@@ -67,8 +75,15 @@ class Table:
 
         lines = [x * '-' + '--' for x in self.column_widths]
         border = f'+{"+".join(lines)}+'
-        header = f'| {" | ".join(str(h).ljust(w) for h, w in zip(self.headers, self.column_widths))} |'
-        return f"{border}\n{header}\n{border}"
+
+        full_headers = get_full_elements(self.headers, self.column_widths)
+        header = add_brackets_to_row(full_headers)
+
+        full_rows = [get_full_elements(x, self.column_widths) for x in self.rows]
+        body = [add_brackets_to_row(x) for x in full_rows]
+        body = "\n".join(body)
+
+        return f"\n{border}\n{header}\n{border}\n{body}\n{border}"
 
     def __repr__(self):
         return f"Table(headers={self.headers}, rows={self.rows}, column_widths={self.column_widths})"
@@ -85,7 +100,6 @@ if __name__ == '__main__':
         ], headers=["City name", "Area", "Population", "Annual Rainfall"])
 
         print(table1)
-        print('table1 ', repr(table1))  # или table.render()
 
 
     no_test_1list_hed()
