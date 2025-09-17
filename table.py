@@ -13,10 +13,12 @@ Table — главный класс. Он:
 Поддерживает настройки стиля
 """
 
+
 # tests+
 def has_nested_lists(lst: list) -> bool:
     """проверяет, есть ли вложенные списки."""
     return any(isinstance(item, list) for item in lst)
+
 
 # tests+
 def get_full_elements(
@@ -59,16 +61,18 @@ class Table:
             self,
             data,
             headers: Optional[list] = None,
-            style: Optional[Literal['minimal', 'classic', 'header_lines']] = None
+            style: Optional[Literal['minimal', 'classic', 'header_lines']] = None,
+            numbering: bool = False  # <-- флаг нумерации
     ):
 
         self.rows = []
         self.headers = headers or []
         self.column_widths = []
+        self.numbering = numbering
 
         # выбор стиля
         style_name = style or 'classic'
-        self.style: Dict[str, Any] = STYLES[style_name]
+        self.style: Dict[str, any] = STYLES[style_name]
 
         if not data:
             # Пустые данные (None, [], "", 0 и т.д.) игнорируются — создаётся пустая таблица
@@ -104,11 +108,15 @@ class Table:
 
         for row in self.rows:
             for i, el in enumerate(row):
-
                 el_len = len(str(el))
-
                 if el_len > self.column_widths[i]:
                     self.column_widths[i] = el_len
+
+        # если нумерация, добавляем отдельную колонку слева
+        if self.numbering:
+            num_width = len(str(len(self.rows)))  # ширина столбца по количеству строк
+            self.column_widths = [max(num_width, 2)] + self.column_widths  # минимум 2 для эстетики
+            self.headers = ['#'] + self.headers
 
     def set_style(self, **kwargs):
         self.style.update(kwargs)
@@ -120,14 +128,20 @@ class Table:
         is_borders = self.style['borders']
         is_v_char = self.style['is_v_char']
 
-        # формируем заголовки таблицы
-        full_headers = get_full_elements(self.headers, self.column_widths)
-        header = add_brackets_to_row(full_headers, sep, is_borders)
+        # формируем строки с нумерацией
+        full_rows = []
+        for idx, row in enumerate(self.rows, start=1):
+            r = list(row)
+            if self.numbering:
+                r = [str(idx)] + r
+            full_rows.append(get_full_elements(r, self.column_widths))
 
-        # формируем строки таблицы
-        full_rows = [get_full_elements(x, self.column_widths) for x in self.rows]
         body = [add_brackets_to_row(x, sep, is_borders) for x in full_rows]
         body = "\n".join(body)
+
+        # заголовки
+        full_headers = get_full_elements(self.headers, self.column_widths)
+        header = add_brackets_to_row(full_headers, sep, is_borders)
 
         if not is_borders:
             return f"\n{header}\n{body}"
@@ -148,10 +162,13 @@ if __name__ == '__main__':
 
     def no_test_1list_hed():
         # Вариант 1: данные — список списков
-        table = Table(data=[
-            ["Adelaide", 1295, 1158259, 600.5],
-            ["Brisbane", 5905, 1857594, 1146.4]
-        ], headers=["City name", "Area", "Population", "Annual Rainfall"])
+        table = Table(
+            data=[
+                ["Adelaide", 1295, 1158259, 600.5],
+                ["Brisbane", 5905, 1857594, 1146.4]
+            ],
+            headers=["City name", "Area", "Population", "Annual Rainfall"],
+            numbering=True)
         print(table)
 
 
@@ -160,7 +177,8 @@ if __name__ == '__main__':
         table = Table(
             data=[["Moscow", 1000000, '12'], ["Rome", 500000, '12-sds-sdsd']],
             headers=["City", "Population", 'rest'],
-            style="minimal"
+            style="minimal",
+            numbering=True
         )
         print(table)
 
@@ -169,7 +187,8 @@ if __name__ == '__main__':
         # Вариант 1: данные — список списков
         table = Table(
             data=[["Moscow", 1000000, '12'], ["Rome", 500000, '12-sds-sdsd']],
-            style="header_lines"
+            style="header_lines",
+            numbering=True
         )
         print(table)
 
