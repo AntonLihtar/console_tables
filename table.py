@@ -13,12 +13,12 @@ Table — главный класс. Он:
 Поддерживает настройки стиля
 """
 
-
+# tests+
 def has_nested_lists(lst: list) -> bool:
     """проверяет, есть ли вложенные списки."""
     return any(isinstance(item, list) for item in lst)
 
-
+# tests+
 def get_full_elements(
         elements: list[str | int],
         column_widths: list[int],
@@ -37,9 +37,10 @@ def get_full_elements(
     return result
 
 
-def add_brackets_to_row(elements: list[str], separator: str, is_borders: bool = True) -> str:
+# tests+
+def add_brackets_to_row(elements: list[str], separator: str = '  ', is_borders: bool = True) -> str:
     """обьединяет столбцы """
-    if separator is None or separator.isspace():
+    if separator.isspace():
         return separator.join(elements)
     body_str = f' {separator} '.join(elements)
     return f'{separator} {body_str} {separator}' if is_borders else body_str
@@ -48,7 +49,7 @@ def add_brackets_to_row(elements: list[str], separator: str, is_borders: bool = 
 # ------------------- Предустановки стилей -------------------
 STYLES: Dict[str, Dict[str, Any]] = {
     "minimal": {"borders": False, 'is_v_char': False, 'separator': '  '},
-    "classic": {"borders": True,  'is_v_char': True,'separator': '|'},
+    "classic": {"borders": True, 'is_v_char': True, 'separator': '|'},
     "header_lines": {"borders": True, 'is_v_char': False, 'separator': '  '}
 }
 
@@ -162,6 +163,7 @@ if __name__ == '__main__':
             style="minimal"
         )
         print(table)
+
 
     def no_test3():
         # Вариант 1: данные — список списков
