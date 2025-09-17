@@ -118,6 +118,18 @@ class Table:
             self.column_widths = [max(num_width, 2)] + self.column_widths  # минимум 2 для эстетики
             self.headers = ['#'] + self.headers
 
+    # сортировка
+    def sort_by(self, columns: str | list[str], reverse: bool = False):
+        """Сортирует таблицу по одной или нескольким колонкам."""
+        if isinstance(columns, str):
+            columns = [columns]
+
+        # Определяем индексы колонок для сортировки / учитываем нумерацию: если есть, смещаем индексы на +1
+        col_indexes = [(self.headers.index(col) - 1 if self.numbering else self.headers.index(col)) for col in columns]
+
+        # сортируем
+        self.rows.sort(key=lambda row: tuple(row[i] for i in col_indexes), reverse=reverse)
+
     def set_style(self, **kwargs):
         self.style.update(kwargs)
 
@@ -193,6 +205,34 @@ if __name__ == '__main__':
         print(table)
 
 
-    no_test_1list_hed()
-    no_test2()
-    no_test3()
+    # no_test_1list_hed()
+    # no_test2()
+    # no_test3()
+
+    def sort_t():
+        table = Table(
+            data=[
+                ["Moscow", 1000000],
+                ["Rome", 500000],
+                ["Paris", 2000000]
+            ],
+            headers=["City", "Population"],
+            numbering=True,
+            style="classic"
+        )
+
+        print("До сортировки:")
+        print(table)
+
+        # сортировка по населению по возрастанию
+        table.sort_by("Population", reverse=True)
+        print("\nПосле сортировки по Population:")
+        print(table)
+
+        # сортировка по названию города по убыванию
+        table.sort_by("City", reverse=True)
+        print("\nПосле сортировки по City (обратно):")
+        print(table)
+
+
+    sort_t()
