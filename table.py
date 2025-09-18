@@ -119,16 +119,17 @@ class Table:
             self.headers = ['#'] + self.headers
 
     # сортировка
-    def sort_by(self, columns: str | list[str], reverse: bool = False):
-        """Сортирует таблицу по одной или нескольким колонкам."""
-        if isinstance(columns, str):
-            columns = [columns]
+    def sort_by(self, column: str, reverse: bool = False):
+        """Сортирует таблицу только по одной колонке."""
+        # находим индекс колонки
+        col_index = self.headers.index(column)
 
-        # Определяем индексы колонок для сортировки / учитываем нумерацию: если есть, смещаем индексы на +1
-        col_indexes = [(self.headers.index(col) - 1 if self.numbering else self.headers.index(col)) for col in columns]
+        # если включена нумерация — смещаем индекс на -1
+        if self.numbering and col_index > 0:
+            col_index -= 1
 
-        # сортируем
-        self.rows.sort(key=lambda row: tuple(row[i] for i in col_indexes), reverse=reverse)
+        # сортируем по выбранной колонке
+        self.rows.sort(key=lambda row: row[col_index], reverse=reverse)
 
     def set_style(self, **kwargs):
         self.style.update(kwargs)
