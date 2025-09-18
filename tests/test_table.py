@@ -1,5 +1,5 @@
 import pytest
-from table import Table  # предполагаем, что основной файл называется table.py
+from terminal_table.table import Table  # предполагаем, что основной файл называется table.py
 
 
 class TestTable:
@@ -27,8 +27,8 @@ class TestTable:
 
         assert table.headers == ["City name2", "Area2", "Population2", "Annual Rainfall2"]
         assert table.rows == [
-            ("Adelaide", 1295, 1158259, 600.5),
-            ("Brisbane", 5905, 1857594, 1146.4)
+            ["Adelaide", 1295, 1158259, 600.5],
+            ["Brisbane", 5905, 1857594, 1146.4]
         ]
 
     def test_single_list(self):

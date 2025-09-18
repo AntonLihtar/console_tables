@@ -1,60 +1,16 @@
 # для замещения отсутсвующих элементов списков
 from itertools import zip_longest
 from typing import Literal, Optional, Dict, Any
+from terminal_table.line import Line
 
-from line import Line
+from terminal_table.utils import has_nested_lists, get_full_elements, add_brackets_to_row
 
-"""
-Table — главный класс. Он:
-
-Принимает данные в разных форматах (список списков, словарь, список)
-Хранит заголовки
-Знает, как себя отрисовать
-Поддерживает настройки стиля
-"""
-
-
-# tests+
-def has_nested_lists(lst: list) -> bool:
-    """проверяет, есть ли вложенные списки."""
-    return any(isinstance(item, list) for item in lst)
-
-
-# tests+
-def get_full_elements(
-        elements: list[str | int],
-        column_widths: list[int],
-        align: Literal["left", "right", "center"] = "left"
-) -> list[str]:
-    """Заполняет элементы пробелами по ширине колонки."""
-    result = []
-    for v, l in zip(elements, column_widths):
-        text = str(v)
-        if align == "right":
-            result.append(text.rjust(l))
-        elif align == "center":
-            result.append(text.center(l))
-        else:
-            result.append(text.ljust(l))
-    return result
-
-
-# tests+
-def add_brackets_to_row(elements: list[str], separator: str = '  ', is_borders: bool = True) -> str:
-    """обьединяет столбцы """
-    if separator.isspace():
-        return separator.join(elements)
-    body_str = f' {separator} '.join(elements)
-    return f'{separator} {body_str} {separator}' if is_borders else body_str
-
-
-# ------------------- Предустановки стилей -------------------
+# ------------------- Пред установки стилей -------------------
 STYLES: Dict[str, Dict[str, Any]] = {
     "minimal": {"borders": False, 'is_v_char': False, 'separator': '  '},
     "classic": {"borders": True, 'is_v_char': True, 'separator': '|'},
     "header_lines": {"borders": True, 'is_v_char': False, 'separator': '  '}
 }
-
 
 class Table:
     def __init__(
@@ -65,6 +21,10 @@ class Table:
             numbering: bool = False  # <-- флаг нумерации
     ):
 
+        # Проверка типа данных
+        if not isinstance(data, (list, dict)):
+            raise Exception(f"Неподдерживаемый тип данных: {type(data)}. Ожидается list или dict.")
+
         self.rows = []
         self.headers = headers or []
         self.column_widths = []
@@ -72,6 +32,8 @@ class Table:
 
         # выбор стиля
         style_name = style or 'classic'
+        if style_name not in STYLES:
+            raise Exception(f"Стиль '{style_name}' не найден. Доступные стили: {list(STYLES.keys())}")
         self.style: Dict[str, any] = STYLES[style_name]
 
         if not data:
@@ -84,7 +46,7 @@ class Table:
 
             if values:
                 first, *rest = values  # распаковываем тут для гарантии запуска zip_longest - иначе не дает
-                self.rows = list(zip_longest(first, *rest, fillvalue=None))
+                self.rows = [list(row) for row in zip_longest(first, *rest, fillvalue=None)]
 
         elif isinstance(data, list):
 
@@ -103,6 +65,9 @@ class Table:
 
                 self.headers = [f'column {x + 1}' for x in range(len_list)]
 
+        # нормализация строк
+        self.rows = [self._normalize_row(list(row), self.headers) for row in self.rows]
+
         # вычисляем самую длинную строку и
         self.column_widths = [len(x) for x in self.headers]
 
@@ -118,9 +83,29 @@ class Table:
             self.column_widths = [max(num_width, 2)] + self.column_widths  # минимум 2 для эстетики
             self.headers = ['#'] + self.headers
 
+    # нормализатор строк
+    def _normalize_row(self, row: list, headers: list[str]) -> list[str]:
+        """Приводит строку к длине headers и заменяет пустые значения на 'n/a'."""
+
+        if not isinstance(row, list):
+            raise Exception(f"Ожидался список, получено {type(row)}")
+
+        normalized = []
+        for i in range(len(headers)):
+            if i < len(row):
+                value = row[i]
+                normalized.append("n/a" if value is None or value == "" else value)
+            else:
+                normalized.append("n/a")
+        return normalized
+
     # сортировка
     def sort_by(self, column: str, reverse: bool = False):
         """Сортирует таблицу только по одной колонке."""
+
+        if column not in self.headers:
+            raise Exception(f"Колонка '{column}' не найдена в таблице. Доступные колонки: {self.headers}")
+
         # находим индекс колонки
         col_index = self.headers.index(column)
 
@@ -130,9 +115,6 @@ class Table:
 
         # сортируем по выбранной колонке
         self.rows.sort(key=lambda row: row[col_index], reverse=reverse)
-
-    def set_style(self, **kwargs):
-        self.style.update(kwargs)
 
     def __str__(self):
         # 2 варианта событий с бордюром или нет
@@ -171,8 +153,6 @@ class Table:
 
 
 if __name__ == '__main__':
-    # todo: table.set_style(borders=True, numbering=True, separator_char='-', cross_char='+')
-
     def no_test_1list_hed():
         # Вариант 1: данные — список списков
         table = Table(
@@ -206,18 +186,19 @@ if __name__ == '__main__':
         print(table)
 
 
-    # no_test_1list_hed()
-    # no_test2()
-    # no_test3()
+    no_test_1list_hed()
+    no_test2()
+    no_test3()
+
 
     def sort_t():
         table = Table(
             data=[
-                ["Moscow", 1000000],
-                ["Rome", 500000],
-                ["Paris", 2000000]
+                ["Moscow", 1000000, 500, "blue"],
+                ["Rome", 500000, 1500, "red"],
+                ["Paris", 2000000, 1000]
             ],
-            headers=["City", "Population"],
+            headers=["City", "Population", "age", "color"],
             numbering=True,
             style="classic"
         )
@@ -229,11 +210,5 @@ if __name__ == '__main__':
         table.sort_by("Population", reverse=True)
         print("\nПосле сортировки по Population:")
         print(table)
-
-        # сортировка по названию города по убыванию
-        table.sort_by("City", reverse=True)
-        print("\nПосле сортировки по City (обратно):")
-        print(table)
-
 
     sort_t()

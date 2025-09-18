@@ -1,4 +1,4 @@
-from table import add_brackets_to_row
+from terminal_table.table import add_brackets_to_row
 
 
 def test_with_space_separator():
@@ -29,3 +29,12 @@ def test_with_single_element():
 def test_with_empty_list():
     result = add_brackets_to_row([], "|", True)
     assert result == "|  |"
+
+if __name__ == "__main__":
+    test_with_space_separator()
+    test_with_pipe_and_borders()
+    test_with_pipe_without_borders()
+    test_with_double_colon_separator()
+    test_with_single_element()
+    test_with_empty_list()
+    print("Все тесты Line пройдены ✅")
